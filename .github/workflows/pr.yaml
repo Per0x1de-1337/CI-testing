@@ -1,3 +1,38 @@
+# name: Trivy Vulnerability Scanner
+
+# on:
+#   push:
+#     paths:
+#       - '**/package*.json'
+#       - '**/.github/workflows/**'
+
+# jobs:
+#   scan:
+#     name: Scan for Vulnerabilities
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#       - name: Run Trivy vulnerability scanner (filesystem scan)
+#         uses: aquasecurity/trivy-action@0.30.0
+#         with:
+#           scan-type: 'fs'
+#           scan-ref: '.'
+#           format: 'table'
+#           ignore-unfixed: true
+#           severity: 'CRITICAL'
+#           vuln-type: 'os,library'
+#           # trivyignores: .trivyignore
+#       - name: Run Trivy vulnerability scanner in repo mode
+#         uses: aquasecurity/trivy-action@0.28.0
+#         with:
+#           scan-type: 'fs'
+#           format: 'sarif'
+#           output: 'trivy-results.sarif'
+#           severity: 'CRITICAL'
+
+
 name: Trivy Vulnerability Scanner
 
 on:
@@ -5,6 +40,9 @@ on:
     paths:
       - '**/package*.json'
       - '**/.github/workflows/**'
+  pull_request:
+    paths:
+      - '**/package*.json'
 
 jobs:
   scan:
@@ -14,7 +52,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner (filesystem scan)
+
+      - name: Debug List all package.json files
+        run: find . -name "package.json"
+
+      - name: Debug Show contents of all package.json files
+        run: |
+          echo "Showing contents of package.json files:"
+          for file in $(find . -name "package.json"); do
+            echo "===== $file ====="
+            cat "$file"
+            echo ""
+          done
+
+      - name: Debug Show lockfiles (package-lock.json or yarn.lock)
+        run: |
+          echo "Looking for lockfiles:"
+          find . -name "package-lock.json" -o -name "yarn.lock"
+
+      - name: Trivy Filesystem Scan (OS + Libraries)
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: 'fs'
@@ -23,11 +79,18 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL'
           vuln-type: 'os,library'
-          # trivyignores: .trivyignore
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@0.28.0
+
+      - name: Trivy Library Scan (Node.js Dependencies)
+        uses: aquasecurity/trivy-action@0.30.0
         with:
-          scan-type: 'fs'
-          format: 'sarif'
+          scan-type: 'library'
+          scan-ref: '.'
+          format: 'table,sarif'
           output: 'trivy-results.sarif'
+          ignore-unfixed: true
           severity: 'CRITICAL'
+
+      - name: Upload Trivy SARIF report to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
