@@ -57,14 +57,24 @@ jobs:
 
       - name: Debug List lockfiles
         run: find . -name "package-lock.json" -o -name "yarn.lock"
-
-      - name: Trivy Scan (Filesystem OS + App Dependencies)
+      - name: Trivy Scan (SARIF)
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          format: 'table,sarif'
+          format: 'sarif'
           output: 'trivy-results.sarif'
+          ignore-unfixed: true
+          severity: 'CRITICAL'
+          vuln-type: 'os,library'
+
+      - name: Trivy Scan (Table)
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          output: 'trivy-results.txt'
           ignore-unfixed: true
           severity: 'CRITICAL'
           vuln-type: 'os,library'
