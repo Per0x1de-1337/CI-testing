@@ -1,0 +1,23 @@
+{
+  "name": "ci-testing",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Per0x1de-1337/CI-testing#readme",
+  "bugs": {
+    "url": "https://github.com/Per0x1de-1337/CI-testing/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Per0x1de-1337/CI-testing.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.16.0"
+  }
+}
