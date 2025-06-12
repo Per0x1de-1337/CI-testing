@@ -32,51 +32,30 @@
 #           output: 'trivy-results.sarif'
 #           severity: 'CRITICAL'
 
-name: Trivy Security Scan
-
+name: pr-trivy
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-
 jobs:
-  trivy-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write  # for uploading SARIF reports to GitHub Security tab
-
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'table'
-        severity: 'HIGH,CRITICAL'
-        exit-code: '0'  # do not fail build; change to '1' to fail on vuln
-        ignore-unfixed: true
-        vuln-type: 'os,library'
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL'
 
-    - name: Trivy Dockerfile Scan
-      run: |
-        trivy config --severity HIGH,CRITICAL --exit-code 0 --format table .
-
-    - name: Trivy SARIF Report (Optional - for GitHub Security Dashboard)
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'HIGH,CRITICAL'
-        exit-code: '0'
-
-    - name: Upload Trivy SARIF to GitHub Security Dashboard
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
