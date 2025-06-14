@@ -1,29 +1,26 @@
-name: Test PR Changes
+name: Test PR #1038 on Push to Main
 
 on:
-  pull_request:
+  push:
     branches:
-      - main  # or your default branch
+      - main
 
 jobs:
-  test-pr:
+  test-hardcoded-pr:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name != github.repository
 
     steps:
-      - name: Checkout PR code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create test branch
+      - name: Clone kubestellar/ui repo
         run: |
-          git checkout -b testpr-${{ github.event.pull_request.number }}
+          git clone https://github.com/kubestellar/ui.git
+          cd ui
+          git remote add pranjal https://github.com/Pranjal6955/ui.git
+          git fetch pranjal Metric
+          git checkout -b testpr-985 pranjal/Metric
 
       - name: Run create-kubestellar-demo-env.sh
         run: |
+          cd ui
           bash <(curl -s https://raw.githubusercontent.com/kubestellar/kubestellar/refs/tags/v0.25.1/scripts/create-kubestellar-demo-env.sh)
 
       - name: Install Docker and Docker Compose
@@ -36,8 +33,8 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
+          cd ui
           docker compose up --build -d
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
-
