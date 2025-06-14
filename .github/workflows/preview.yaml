@@ -1,0 +1,43 @@
+name: Test PR Changes
+
+on:
+  pull_request:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  test-pr:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create test branch
+        run: |
+          git checkout -b testpr-${{ github.event.pull_request.number }}
+
+      - name: Run create-kubestellar-demo-env.sh
+        run: |
+          bash <(curl -s https://raw.githubusercontent.com/kubestellar/kubestellar/refs/tags/v0.25.1/scripts/create-kubestellar-demo-env.sh)
+
+      - name: Install Docker and Docker Compose
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Docker Compose plugin
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
+
+      - name: Build and run Docker Compose
+        run: |
+          docker compose up --build -d
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
