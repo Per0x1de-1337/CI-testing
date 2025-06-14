@@ -23,6 +23,7 @@ jobs:
           cd ui
           bash <(curl -s https://raw.githubusercontent.com/kubestellar/kubeflex/main/scripts/install-kubeflex.sh) --ensure-folder /usr/local/bin --strip-bin
           bash <(curl -L https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh)
+          bash <(clusteradm init)
           bash <(curl -s https://raw.githubusercontent.com/kubestellar/kubestellar/refs/tags/v0.25.1/scripts/create-kubestellar-demo-env.sh)
 
       - name: Install Docker and Docker Compose
