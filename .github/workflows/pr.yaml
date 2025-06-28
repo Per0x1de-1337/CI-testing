@@ -62,28 +62,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # This step will fail the build and print a table in the logs
-      # if CRITICAL vulnerabilities are found.
+      # Step 1: Run Trivy with table format to fail the build and provide clear log output.
       - name: Run Trivy vulnerability scanner (log output)
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: '.'
           format: 'table'
-          ignore-unfixed: true
           severity: 'CRITICAL'
-          vuln-type: 'os,library'
-          exit-code: '1' # Important: fails the build on detection
+          ignore-unfixed: true
+          # This exit-code will fail the build if CRITICAL vulnerabilities are found.
+          exit-code: '1'
 
-      # This step runs ONLY IF the first one passes. For a more robust
-      # report, you might want this to run always. See note below.
+      # Step 2: Run Trivy again to generate a SARIF report for the GitHub Security tab.
+      # This step will not fail the build.
       - name: Run Trivy vulnerability scanner (SARIF report)
-        # We add if: always() so this report is generated even if the
-        # previous step fails. This ensures the security tab is always updated.
+        # Use 'if: always()' to ensure this step runs even if the previous one fails.
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH' # You might want to report HIGH severity as well
+          severity: 'CRITICAL,HIGH'
+          # Use exit-code '0' so this step doesn't fail the build.
+          # Its only purpose is to generate the report.
+          exit-code: '0'
